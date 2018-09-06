@@ -28,7 +28,7 @@
 Имя файла с датами по умолчанию: sums-by-dates.txt.
 Имя файла с точками продаж по умолчанию: sums-by-offices.txt.
 
-##Примеры
+## Примеры
 
 ```bash
 $ python3 task1.py --of offices.txt --num 90000 --op operations.txt
