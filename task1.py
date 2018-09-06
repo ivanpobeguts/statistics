@@ -20,7 +20,7 @@ def generate_date():
     start_date = datetime(current_year - 1, 1, 1)
     end_date = datetime(current_year, 1, 1)
     random_date = start_date + (end_date - start_date) * random.random()
-    return random_date.strftime('%d.%m.%Y %H:%M')
+    return random_date
 
 
 def choose_office(path):
@@ -35,11 +35,12 @@ def generate_operation_sum():
 def prepare_result_string(path, num):
     prep_string = [
         str(num + 1),
-        generate_date(),
+        generate_date().date().strftime('%d.%m.%Y'),
+        generate_date().time().strftime('%H:%M'),
         choose_office(path),
         str(generate_operation_sum()),
     ]
-    result_string = ', '.join(prep_string)
+    result_string = ','.join(prep_string)
     return result_string
 
 
@@ -59,6 +60,7 @@ def get_args():
     parser.add_argument(
         '--op',
         help='path to output file',
+        default='operations.txt',
         type=str,
     )
     args = check_args(parser)
@@ -67,17 +69,21 @@ def get_args():
 
 def check_args(parser):
     args = parser.parse_args()
+    if args.of is None:
+        parser.error(
+            "Please specify file with offices"
+        )
     if not os.path.isfile(args.of):
         parser.error(
             "File with offices doesn't exist"
         )
-    if os.path.isfile(args.op):
-        parser.error(
-            'File with operations already exist'
-        )
     if args.num == 0:
         parser.error(
             'You must enter non zero number of operations'
+        )
+    if args.op is None:
+        parser.error(
+            "Please specify output file with operations"
         )
     return args
 
@@ -89,11 +95,12 @@ if __name__ == '__main__':
     with open(args.op, 'w') as f:
         prep_header = [
             'Num',
-            'Date_Time',
+            'Date',
+            'Time',
             'Office_num',
             'Ammount',
         ]
-        header = ', '.join(prep_header)
+        header = ','.join(prep_header)
         f.write('%s\n' % header)
         for result in p.map(
                 partial(prepare_result_string, args.of),
