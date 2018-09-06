@@ -2,6 +2,9 @@ from datetime import datetime
 import random
 import os
 import argparse
+import time
+from multiprocessing import Pool
+from functools import partial
 
 __author__ = 'Ivan Pobeguts'
 
@@ -29,9 +32,15 @@ def generate_operation_sum():
     return round(random.uniform(10000.00, 100000.00), 2)
 
 
-def write_to_file(path, string):
-    with open(path, 'a') as the_file:
-        the_file.write(string + '\n')
+def prepare_result_string(path, num):
+    prep_string = [
+        str(num + 1),
+        generate_date(),
+        choose_office(path),
+        str(generate_operation_sum()),
+    ]
+    result_string = ', '.join(prep_string)
+    return result_string
 
 
 def get_args():
@@ -64,19 +73,33 @@ def check_args(parser):
         )
     if os.path.isfile(args.op):
         parser.error(
-            "File with offices already exist"
+            'File with operations already exist'
         )
     if args.num == 0:
         parser.error(
-            "You must enter non zero number of operations"
+            'You must enter non zero number of operations'
         )
     return args
 
 
 if __name__ == '__main__':
+    before = int(round(time.time() * 1000))
     args = get_args()
-    with open(args.op, 'w') as output_file:
-        for num in range(args.num):
-            string = str(num + 1), generate_date(), choose_office(args.of), str(generate_operation_sum())
-            result_string = ' '.join(string)
-            output_file.write("%s\n" % result_string)
+    p = Pool(5)
+    with open(args.op, 'w') as f:
+        prep_header = [
+            'Num',
+            'Date_Time',
+            'Office_num',
+            'Ammount',
+        ]
+        header = ', '.join(prep_header)
+        f.write('%s\n' % header)
+        for result in p.map(
+                partial(prepare_result_string, args.of),
+                range(args.num)):
+            f.write('%s\n' % result)
+
+    after = int(round(time.time() * 1000))
+    print('File successfully saved! Time spent: {} ms'
+          .format(after - before))
