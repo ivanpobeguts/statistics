@@ -81,10 +81,6 @@ def check_args(parser):
         parser.error(
             'You must enter non zero number of operations'
         )
-    if args.op is None:
-        parser.error(
-            "Please specify output file with operations"
-        )
     return args
 
 
